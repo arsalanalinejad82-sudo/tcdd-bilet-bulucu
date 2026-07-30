@@ -1,0 +1,17 @@
+name: Bilet Kontrol
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - run: pip3 install -r requirements.txt
+      - run: timeout 480 python3 main.py || true
