@@ -14,38 +14,40 @@ def fetch_and_filter_journeys():
     for binis_istasyon_adi, inis_istasyon_adi in config.routes:
         binis_istasyon_id = stations.get(binis_istasyon_adi)
         inis_istasyon_id = stations.get(inis_istasyon_adi)
-        formatted_date = format_date(config.date)
 
-        body = {
-            "kanalKodu": 3,
-            "dil": 0,
-            "seferSorgulamaKriterWSDVO": {
-                "satisKanali": 3,
-                "binisIstasyonu": binis_istasyon_adi,
-                "inisIstasyonu": inis_istasyon_adi,
-                "binisIstasyonId": binis_istasyon_id,
-                "inisIstasyonId": inis_istasyon_id,
-                "binisIstasyonu_isHaritaGosterimi": False,
-                "inisIstasyonu_isHaritaGosterimi": False,
-                "seyahatTuru": 1,
-                "gidisTarih": f"{formatted_date} 00:00:00 AM",
-                "bolgeselGelsin": False,
-                "islemTipi": 0,
-                "yolcuSayisi": 1,
-                "aktarmalarGelsin": True,
+        for date in config.dates:
+            formatted_date = format_date(date)
+
+            body = {
+                "kanalKodu": 3,
+                "dil": 0,
+                "seferSorgulamaKriterWSDVO": {
+                    "satisKanali": 3,
+                    "binisIstasyonu": binis_istasyon_adi,
+                    "inisIstasyonu": inis_istasyon_adi,
+                    "binisIstasyonId": binis_istasyon_id,
+                    "inisIstasyonId": inis_istasyon_id,
+                    "binisIstasyonu_isHaritaGosterimi": False,
+                    "inisIstasyonu_isHaritaGosterimi": False,
+                    "seyahatTuru": 1,
+                    "gidisTarih": f"{formatted_date} 00:00:00 AM",
+                    "bolgeselGelsin": False,
+                    "islemTipi": 0,
+                    "yolcuSayisi": 1,
+                    "aktarmalarGelsin": True,
+                }
             }
-        }
 
-        print(f"Checking {binis_istasyon_adi} -> {inis_istasyon_adi} for date: {formatted_date}")
-        response = post_request(sefer_url, body)
-        data = response.json()
+            print(f"Checking {binis_istasyon_adi} -> {inis_istasyon_adi} for date: {formatted_date}")
+            response = post_request(sefer_url, body)
+            data = response.json()
 
-        if data['cevapBilgileri']['cevapKodu'] == '000':
-            for sefer in data['seferSorgulamaSonucList']:
-                sefer_time = datetime.datetime.strptime(sefer['binisTarih'], "%b %d, %Y %I:%M:%S %p")
-                end_time = datetime.datetime.strptime(f"{config.date} {config.end_hour}", "%Y-%m-%d %H:%M")
-                if sefer_time.time() <= end_time.time():
-                    check_sefer(sefer, binis_istasyon_adi, inis_istasyon_adi)
+            if data['cevapBilgileri']['cevapKodu'] == '000':
+                for sefer in data['seferSorgulamaSonucList']:
+                    sefer_time = datetime.datetime.strptime(sefer['binisTarih'], "%b %d, %Y %I:%M:%S %p")
+                    end_time = datetime.datetime.strptime(f"{date} {config.end_hour}", "%Y-%m-%d %H:%M")
+                    if sefer_time.time() <= end_time.time():
+                        check_sefer(sefer, binis_istasyon_adi, inis_istasyon_adi)
 
 
 def check_sefer(sefer, binis_istasyon_adi, inis_istasyon_adi):
